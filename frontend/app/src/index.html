@@ -1,0 +1,37 @@
+<header>
+    <!-- load the script in parallel to html rendering, but execute script after all html is done rendering -->
+    <script src="./main.js" defer></script>
+</header>
+<body>
+    <p>Registration</p>
+    <input placeholder="Username" id="001"></input>
+    <input placeholder="Password" id="002"></input>
+    <!-- getElementById returns an object, and so we need to access the value element of that object -->
+    <button onclick="registerCustomer(document.getElementById('001').value, document.getElementById('002').value)">Submit Input</button> 
+</body>
+<body>
+    <p>Login</p>
+    <input placeholder="Username" id="003"></input>
+    <input placeholder="Password" id="004"></input>
+    <!-- getElementById returns an object, and so we need to access the value element of that object -->
+    <button onclick="loginCustomer(document.getElementById('003').value, document.getElementById('004').value)">Submit Input</button> 
+    
+</body>
+<body>
+    <p>Create a Vault</p>
+    <input placeholder="VaultName" id="005"></input>
+    <!-- getElementById returns an object, and so we need to access the value element of that object -->
+    <button onclick="createVault(document.getElementById('005').value)">Submit Input</button> 
+</body>
+<body>
+    <p>Add Data To Vault</p>
+    <input placeholder="VaultName" id="006"></input>
+    <input placeholder="Description" id="007"></input>
+    <input placeholder="Password" id="008"></input>
+
+    <!-- getElementById returns an object, and so we need to access the value element of that object -->
+    <button onclick="addVaultData(document.getElementById('006').value, document.getElementById('007').value, document.getElementById('008').value)">Submit Input</button> 
+</body>
+
+
+
