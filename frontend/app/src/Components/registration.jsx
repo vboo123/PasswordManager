@@ -60,6 +60,8 @@ export default function Register() {
     const data = new FormData(event.currentTarget);
     registerCustomer(data.get('email'), data.get('password'))
 };
+console.log("hi")
+
 
   return (
     <ThemeProvider theme={theme}>

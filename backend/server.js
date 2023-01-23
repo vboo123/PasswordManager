@@ -56,8 +56,13 @@ app.post("/login", (req, res) => {
     vaultKey = ac.createVaultKey(username, password)
     authKey = ac.createAuthenticationKey(vaultKey, password)
     query = mysql.format("SELECT customerID, username, masterPassword FROM Customers WHERE username = ?", [username]);
+    console.log("hi1")
     db.query(query, (error, data) => {
         if(error){
+            console.log("hi2")
+            res.send({
+                log: "Login Failed"
+            })
             throw error
         }
         console.log(data)

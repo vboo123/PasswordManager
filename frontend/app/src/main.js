@@ -4,49 +4,6 @@ const box = document.createElement("div");
                 box.id = "button-box";
                 document.body.appendChild(box);
 
-function registerCustomer(username, password){
-    fetch("http://localhost:3001/registration", {
-        method: 'POST',
-        headers: {
-            'Content-type': 'application/json'
-        },
-        body: JSON.stringify({
-            uname: username,
-            pword: password
-        })
-    })
-    .then(res => {        
-        return res.json()
-    })
-    .then(data => {
-        console.log(data)
-        //alert user with message
-        alert(data.log)
-    })
-    .catch(err => console.log(err))
-}
-function loginCustomer(a,b){
-    fetch("http://localhost:3001/login", {
-        method: 'POST',
-        headers: {
-            'Content-type': 'application/json'
-        },
-        body: JSON.stringify({
-            uname: a,
-            pword: b
-    })
-    })
-    .then(res => {       
-        return res.json()
-    })
-    .then(data => {
-        customerId = data.id;
-        alert(data.log)
-        getVaults()
-    })
-    .catch(err => console.log(err))
-}
-
 function createVault(vaultName){
     fetch("http://localhost:3001/newVault", {
         method: 'POST',
