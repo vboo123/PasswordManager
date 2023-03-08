@@ -7,6 +7,7 @@ var pbkdf2 = require('pbkdf2-sha256')
 const session = require('express-session');
 const init = require('./initialization.js')
 const ac = require('./customer.js')
+const { query } = require('express')
 
 app.use(session({
     secret: 'secret-key',
@@ -52,12 +53,13 @@ app.post("/registration", (req, res) => {
 app.post("/login", (req, res) => {
     username = req.body.uname
     password = req.body.pword
-
     vaultKey = ac.createVaultKey(username, password)
     authKey = ac.createAuthenticationKey(vaultKey, password)
     query = mysql.format("SELECT customerID, username, masterPassword FROM Customers WHERE username = ?", [username]);
-    console.log("hi1")
+    console.log(username)
     db.query(query, (error, data) => {
+        console.log("hello")
+
         if(error){
             console.log("hi2")
             res.send({
@@ -96,7 +98,8 @@ app.post("/newVault", (req, res) => {
     
     vaultID = req.body
     vaultID = customerID + vaultName
-    query = mysql.format("SELECT vaultName FROM CustomerVaults WHERE EXISTS(SELECT * FROM CustomerVaults WHERE vaultName = ?)", [vaultName]);
+    //check if vaultName already exists for specific customer id
+    query = mysql.format("SELECT vaultName FROM CustomerVaults WHERE EXISTS(SELECT * FROM CustomerVaults WHERE customerID = ? AND vaultName = ?)", [customerID, vaultName]);
     db.query(query, (error, data) => {
         if(error){
             throw error
@@ -132,19 +135,36 @@ app.post("/addData", (req, res) => {
     password = req.body.password
     vaultName = req.body.vaultName
     customerID = req.body.id
-    console.log(customerID)
-    console.log(vaultName)
     vaultID = customerID + vaultName
-    console.log(vaultID)
-    query = mysql.format("INSERT INTO VaultMaster(vaultID, description, password) VALUES (?, ?, ?)", [vaultID, description, password]);
+    //check if description already exists in VaultMaster for that specific vaultID
+    query = mysql.format("SELECT description FROM VaultMaster WHERE EXISTS(SELECT * FROM VaultMaster WHERE vaultID = ? AND description = ?)", [vaultID, description]);
     db.query(query, (error, data) => {
         if(error){
             throw error
         }
-        console.log("Values Inserted into VaultMaster Succesfully")
-    }
-    )
+        console.log(data)
+        if(data[0] != null){
+            res.send({
+                log: "Description already present. Please select new Description"
+            })
+        }
+        else{
+            query = mysql.format("INSERT INTO VaultMaster(vaultID, description, password) VALUES (?, ?, ?)", [vaultID, description, password]);
+            db.query(query, (error, data) => {
+                if(error){
+                    res.send({
+                        log: "Values could not be inserted"
+                    })
+                    throw error
+                }
+                res.send({
+                    log: "success"
+                })
+            })
+        }
+    })
 })
+
 
 //get all the vaults for a specific customer
 app.post("/vaults", (req, res) => {
@@ -162,9 +182,28 @@ app.post("/vaults", (req, res) => {
     )
 })
 
+//delete vault
+// app.post("/deleteVault", (req, res) => {
+//     customerID = req.body.id
+//     vaultName = req.body.name
+//     vaultID = customerID + vaultName
+//     console.log(vaultID)
+//     query = mysql.format("DELETE FROM CustomerVaults WHERE vaultID = ?", [vaultID]);
+//     db.query(query, (error, data) => {
+//         if(error){
+//             throw error
+//         }
+//         data = JSON.parse(JSON.stringify(data))
+//         console.log(data)
+//         res.json(data)
+//     })
+// })
+
+
 //get all the vaults for a specific customer
 app.post("/vaultContents", (req, res) => {
-    vaultID = req.body.id
+    vaultName = req.body.name
+    vaultID = req.body.id + vaultName
     console.log(vaultID)
     query = mysql.format("SELECT description, password FROM VaultMaster WHERE vaultID = ?", [vaultID]);
     db.query(query, (error, data) => {
