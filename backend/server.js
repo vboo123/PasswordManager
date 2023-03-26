@@ -55,7 +55,7 @@ app.post("/login", (req, res) => {
     password = req.body.pword
     vaultKey = ac.createVaultKey(username, password)
     authKey = ac.createAuthenticationKey(vaultKey, password)
-    query = mysql.format("SELECT customerID, username, masterPassword FROM Customers WHERE username = ?", [username]);
+    var query = mysql.format("SELECT customerID, username, masterPassword FROM Customers WHERE username = ?", [username]);
     console.log(username)
     db.query(query, (error, data) => {
         console.log("hello")
@@ -70,8 +70,9 @@ app.post("/login", (req, res) => {
         console.log(data)
         if(data != null){
             data = JSON.parse(JSON.stringify(data))
-            if(data[0].masterPassword == authKey){
+            if(data[0].masterPassword == authKey){                
                 req.session.customerID = data[0].customerID;
+                req.session.save()
                 res.send({
                     id: req.session.customerID,
                     log: "Login Successful"
@@ -92,6 +93,16 @@ app.post("/login", (req, res) => {
 
 })
 
+//logout
+app.post("/logout", (req, res) => {
+    //properly end session for user and prevent anything to happen until logged in again
+    req.session.destroy();    
+    res.send({
+        log: "Logout Successful"
+    })
+    
+})
+
 app.post("/newVault", (req, res) => {
     customerID = req.body.id
     vaultName = req.body.name
@@ -99,7 +110,7 @@ app.post("/newVault", (req, res) => {
     vaultID = req.body
     vaultID = customerID + vaultName
     //check if vaultName already exists for specific customer id
-    query = mysql.format("SELECT vaultName FROM CustomerVaults WHERE EXISTS(SELECT * FROM CustomerVaults WHERE customerID = ? AND vaultName = ?)", [customerID, vaultName]);
+    var query = mysql.format("SELECT vaultName FROM CustomerVaults WHERE EXISTS(SELECT * FROM CustomerVaults WHERE customerID = ? AND vaultName = ?)", [customerID, vaultName]);
     db.query(query, (error, data) => {
         if(error){
             throw error
@@ -137,7 +148,7 @@ app.post("/addData", (req, res) => {
     customerID = req.body.id
     vaultID = customerID + vaultName
     //check if description already exists in VaultMaster for that specific vaultID
-    query = mysql.format("SELECT description FROM VaultMaster WHERE EXISTS(SELECT * FROM VaultMaster WHERE vaultID = ? AND description = ?)", [vaultID, description]);
+    var query = mysql.format("SELECT description FROM VaultMaster WHERE EXISTS(SELECT * FROM VaultMaster WHERE vaultID = ? AND description = ?)", [vaultID, description]);
     db.query(query, (error, data) => {
         if(error){
             throw error
@@ -170,7 +181,7 @@ app.post("/addData", (req, res) => {
 app.post("/vaults", (req, res) => {
     customerID = req.body.id
     console.log(customerID)
-    query = mysql.format("SELECT vaultName, vaultID FROM CustomerVaults WHERE customerID = ?", [customerID]);
+    var query = mysql.format("SELECT vaultName, vaultID FROM CustomerVaults WHERE customerID = ?", [customerID]);
     db.query(query, (error, data) => {
         if(error){
             throw error
@@ -183,29 +194,61 @@ app.post("/vaults", (req, res) => {
 })
 
 //delete vault
-// app.post("/deleteVault", (req, res) => {
-//     customerID = req.body.id
-//     vaultName = req.body.name
-//     vaultID = customerID + vaultName
-//     console.log(vaultID)
-//     query = mysql.format("DELETE FROM CustomerVaults WHERE vaultID = ?", [vaultID]);
-//     db.query(query, (error, data) => {
-//         if(error){
-//             throw error
-//         }
-//         data = JSON.parse(JSON.stringify(data))
-//         console.log(data)
-//         res.json(data)
-//     })
-// })
+app.post("/deleteVault", (req, res) => {
+    customerID = req.body.id
+    vaultName = req.body.name
+    vaultID = customerID + vaultName
+    console.log(vaultID)
+    var query = mysql.format("DELETE FROM CustomerVaults WHERE vaultID = ?", [vaultID]);
+    db.query(query, (error, data) => {
+        if(error){
+            res.send({
+                log: "Issue deleting vault"
+            })
+            throw error
+        }
+        //delete all content in VaultMaster for that specific vaultID
+        var query = mysql.format("DELETE FROM VaultMaster WHERE vaultID = ?", [vaultID]);
+        db.query(query, (error, data) => {
+            if(error){
+                throw error
+            }
+            res.send({
+                log: "Vault deleted succesfully"
+            })
+        })
+    })
+})
 
+//delete vault content
+app.post("/deleteVaultContent", (req, res) => {
+    customerID = req.body.id
+    vaultName = req.body.vaultName
+    description = req.body.description
+    console.log(description)
+    vaultID = customerID + vaultName
+    console.log(vaultID)
+    var query = mysql.format("DELETE FROM VaultMaster WHERE vaultID = ? AND description = ?", [vaultID, description]);
+    db.query(query, (error, data) => {
+        if(error){
+            res.send({
+                log: "Issue deleting vault content"
+                })
+                throw error
+            }
+        res.send({
+            log: "Vault content deleted succesfully"
+        })
+    })
+})
+                    
 
 //get all the vaults for a specific customer
 app.post("/vaultContents", (req, res) => {
     vaultName = req.body.name
     vaultID = req.body.id + vaultName
     console.log(vaultID)
-    query = mysql.format("SELECT description, password FROM VaultMaster WHERE vaultID = ?", [vaultID]);
+    var query = mysql.format("SELECT description, password FROM VaultMaster WHERE vaultID = ?", [vaultID]);
     db.query(query, (error, data) => {
         if(error){
             throw error

@@ -43,6 +43,14 @@ function createVault(vaultName) {
 
 export default function Home(props) {
   const { id } = useParams();
+
+  //check if loggedIn in localstorage
+  const loggedInState = localStorage.getItem("loggedIn");
+  //if not loggedIn, then throw error
+  if (loggedInState == "false") {
+    alert("Please login to access this page");
+    window.location.href = "/";
+  }
   customerId = id;
   //hook to store the content of vaults from fetch api
   const [vaults, setVaults] = useState([]);
@@ -89,6 +97,25 @@ export default function Home(props) {
       });
   }
   
+  //logout
+  const logout = () => {
+    fetch("http://localhost:3001/logout", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify({
+        id: customerId,
+      }),
+    })
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => {
+        alert(data.log);
+      });
+  }
+
   return (
     <div>
     <Box
@@ -119,7 +146,7 @@ export default function Home(props) {
           <ListItemButton
             onClick={() => {
               let vaultName = prompt("Enter a Vault Name");
-              if(vaultName != ""){
+              if(vaultName != "" && vaultName != null){
                 createVault(vaultName);
               }
               else{
@@ -152,6 +179,21 @@ export default function Home(props) {
           }
           >
             <ListItemText primary="Delete Vault" />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          {/* delete vault button */}
+          <ListItemButton 
+          onClick={() => {
+            console.log("logout")
+            logout();
+            localStorage.setItem("loggedIn", "false");
+            //go to login page
+            window.location.href = "/";
+          }
+          }
+          >
+            <ListItemText primary="Logout" />
           </ListItemButton>
         </ListItem>
       </List>

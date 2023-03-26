@@ -48,6 +48,9 @@ function CallHome(customerId){
   console.log(customerId)
   if(customerId != 0){
     //https://ui.dev/react-router-url-parameters
+    //store in localstorage user is logged in
+    localStorage.setItem('loggedIn', true);
+
     const element = "/home/" + customerId
     window.location.href = element;
   }
