@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const PORT = 3001
+const port = process.env.PORT || 3001;
 const mysql = require('mysql')
 const cors = require('cors')
 var pbkdf2 = require('pbkdf2-sha256')
@@ -259,5 +259,5 @@ app.post("/vaultContents", (req, res) => {
     })
 })
 
-app.listen(PORT)
+app.listen(port, () => console.log('Server is Running on port' + port))
 
